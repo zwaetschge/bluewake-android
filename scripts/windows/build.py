@@ -62,10 +62,12 @@ def step(title):
     print(f"\n==> {title}", flush=True)
 
 
-def default_jobs():
+def default_jobs(gb_per_job=2.5):
     """All cores, but no more parallel compiles than memory allows: the large
     translated chunks take 1 to 3 GB each in clang, and running out of commit
-    kills the compiler ("LLVM ERROR: out of memory"; compile_module retries)."""
+    kills the compiler ("LLVM ERROR: out of memory"; compile_module retries).
+    gb_per_job is the per-chunk memory budget the limit divides by; the Android
+    builder measures its own (1.25 GB at -O2, 1.0 at -O0)."""
     cores = os.cpu_count() or 8
     try:
         import ctypes
@@ -80,7 +82,7 @@ def default_jobs():
         status.dwLength = ctypes.sizeof(MemoryStatus)
         if ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status)):
             available = min(status.ullAvailPhys, status.ullAvailPageFile)
-            return max(1, min(cores, int(available // (2.5 * 2**30))))
+            return max(1, min(cores, int(available // (gb_per_job * 2**30))))
     except (AttributeError, OSError):
         pass
     return cores

@@ -653,7 +653,14 @@ class AndroidBuilder(wb.Builder):
         else:
             self.build_mods()
         step("the last source steps (the Windows builder's, unchanged)")
-        self.finish_in_place()
+        # prepare_blocks reads the Windows parser's optional-transform flags;
+        # this parser has none of them, so run it with their all-off defaults.
+        for flag in ("prepared_blocks", "fixed_cpu", "fixed_mem1", "inline_fp", "gather_pipe",
+                     "direct_calls", "inline_gpr", "native_j3d", "native_vec", "native_math",
+                     "native_skin", "native_game_math"):
+            if not hasattr(self.args, flag):
+                setattr(self.args, flag, False)
+        self.prepare_blocks()
         lib = None
         if args.device and self.profile is None and not args.app_only:
             step("9/10 build the app (libmain.so), for the training APK")
