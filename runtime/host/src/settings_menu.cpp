@@ -56,6 +56,7 @@ namespace {
 // the menu does not show) is kept as it was.
 const char* const kKeys[] = {
     "BLUEWAKE_ASPECT",          "DOL_AURORA_FULLSCREEN",    "DOL_AURORA_RENDER_SCALE",
+    "BLUEWAKE_REFRESH",
     "DOL_AURORA_FRAME_INTERP",  "DOL_AURORA_FRAME_INTERP_STEPS", "DOL_AURORA_SHOW_FPS", "DOL_AURORA_FORCE_ANISO",
     "DOL_AURORA_TEXTURE_PACK",  "BLUEWAKE_MODS",            "BLUEWAKE_OPTIONS",
     "BLUEWAKE_FADE_FRAMES",     "BLUEWAKE_FAST_FORWARD",    "BLUEWAKE_QUICK_DOORS",
@@ -278,13 +279,21 @@ void display_tab() {
             SDL_SetWindowFullscreen(window, fullscreen);
     }
 
-    static const char* const kScales[] = {"The window's pixels", "1x (480 lines)", "2x (960)", "3x (1440)",
-                                          "4x (1920)"};
-    int scale = std::atoi(env("DOL_AURORA_RENDER_SCALE", "0").c_str());
-    scale = scale < 0 ? 0 : scale > 4 ? 4 : scale;
-    if (combo("Render resolution", &scale, kScales, 5)) {
-        set_env("DOL_AURORA_RENDER_SCALE", std::to_string(scale));
-        aurora_set_frame_buffer_scale(static_cast<float>(scale));
+    // 2.25 is FullHD at 16:9 (480 x 2.25 = 1080 lines, x1.7778 = 1920 wide),
+    // a phone panel's own pixels: the frame buffer stops being resampled.
+    static const char* const kScales[] = {"The window's pixels", "1x (480 lines)", "2x (960)",
+                                          "2.25x (1080p)", "3x (1440)", "4x (1920)"};
+    static const float kScaleValues[] = {0.f, 1.f, 2.f, 2.25f, 3.f, 4.f};
+    const float chosen_scale = std::strtof(env("DOL_AURORA_RENDER_SCALE", "0").c_str(), nullptr);
+    int scale = 0;
+    for (int i = 0; i < 6; ++i)
+        if (std::fabs(chosen_scale - kScaleValues[i]) < 0.01f)
+            scale = i;
+    if (combo("Render resolution", &scale, kScales, 6)) {
+        char text[16];
+        std::snprintf(text, sizeof text, "%.4g", kScaleValues[scale]);
+        set_env("DOL_AURORA_RENDER_SCALE", text);
+        aurora_set_frame_buffer_scale(kScaleValues[scale]);
     }
 
     static const char* const kSmooth[] = {"Off (30, the game's)", "60 frames a second",
@@ -299,6 +308,20 @@ void display_tab() {
         aurora_set_frame_interpolation(smooth != 0);
     }
     ImGui::TextDisabled("The game runs at 30; display changes and overloads can lower the presentation rate.");
+
+    // The panel's own rate, asked for by the Android activity at every launch
+    // (it reads this setting); 120 is what "120 frames a second" above needs,
+    // because a panel switched to 60 reports 60 and Smooth Motion steps back
+    // down. Off Android the setting is dead: only Android pins a rate.
+    if (std::string(SDL_GetPlatform()) == "Android") {
+        static const char* const kRefresh[] = {"60 Hz (saves power)", "120 Hz (needs the panel's)"};
+        int rate = std::atoi(env("BLUEWAKE_REFRESH", "60").c_str()) >= 120 ? 1 : 0;
+        if (combo("Panel refresh rate", &rate, kRefresh, 2)) {
+            set_env("BLUEWAKE_REFRESH", rate == 1 ? "120" : "60");
+            g_dirty = g_restart_pending = true;
+        }
+        restart_note();
+    }
 
     bool fps = env_on("DOL_AURORA_SHOW_FPS", false);
     if (ImGui::Checkbox("Show the frame rate", &fps)) {
