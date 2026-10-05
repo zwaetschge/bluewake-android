@@ -43,12 +43,21 @@ the Fold 7 with the trained module, Link standing on Outset, the phone charging:
 
 The game's work per frame (instructions counted with `simpleperf stat`) and its memory (about 850 MB once on
 Outset) stay flat over a session: the slowdown after several minutes of play is the frequency limit, not a leak.
-So on a phone, power is speed: the Android build asks for a 60 Hz display (not 120), leaves Smooth Motion off, and
-lowering the render resolution (the GPU was 72 percent busy at 2x) or playing unplugged keeps the limit higher for
-longer.
+So on a phone, power is speed: by default the Android build asks for a 60 Hz display mode (not 120), leaves
+Smooth Motion off, and lowering the render resolution (the GPU was 72 percent busy at 2x) or playing unplugged
+keeps the limit higher for longer. The options menu can ask for the panel's 120 Hz instead (below).
 
-Not yet tried: saving and reloading a game on Android, other devices, Android versions and GPUs (Mali, older
-Adreno), game controllers on Android (they go through SDL, as on Windows), the HD texture packs, and the later game.
+Not yet tried: other Android versions and GPUs (Mali, older Adreno), external game controllers in depth (they
+go through SDL, as on Windows), and the later game.
+
+On an AYN Odin3 (Snapdragon 8 Elite, Android 15, 16 KB pages, a 1080x1920 120 Hz panel), 2026-10-03 to
+2026-10-05, a personal build of BlueWake 0.5.0 (the game module compiled on Linux with the NDK, by hand, with
+the builder's options): the title, the file select and play on Outset from a save made on the device;
+Hypatia's HD texture pack (its Android "Lite" 3x build, 5739 replacements); 16:9 at 2.25x (a 1920x1080 frame
+buffer) and 4:3 at 120 Hz with Smooth Motion, the panel's mode switched as `dumpsys display` shows; and the
+game in German, French, Spanish and Italian from the European disc's files (below), each through the file
+select into play. The European-language runs used a test image assembled from the European disc's files,
+not the full disc.
 
 The app without the game (2026-10-03): an app-only APK -- no translated game module, nothing from the disc --
 built on Linux with the NDK's CMake and the options the builder passes, packaged as the builder's step 10 does,
@@ -168,6 +177,10 @@ never does.
 - **Controllers**: through SDL, as a GameCube pad (as on Windows).
 - **Options**: the Back button or gesture (or a controller's Back/Select) opens the options menu over the paused
   game: display, controls, mods (4:3, 16:10 or 16:9, Better Wind Waker, quick doors). Touch works in it.
+  Android adds three entries: **Render resolution 2.25x (1080p)** (16:9 at a phone panel's own 1920x1080),
+  **Panel refresh rate** (60 Hz, the default, or 120 Hz, which Smooth Motion's 120 frames need; the activity
+  asks for the panel's same-resolution display mode at every launch and resume, as SDL3 has no display-mode
+  call on Android) and **Gameplay > Language** (below).
 - The picture keeps the game's shape and renders at twice the GameCube's 480 lines by default; the mouse camera
   is off (touches would reach it as clicks).
 
@@ -199,13 +212,15 @@ menu.
 | `android/src/language_overlay.c` | Other languages from the European disc, in front of GXRuntime's DVD layer (`--wrap`) |
 | `android/src/language_textures.h` | The file select's save-slot labels per language (`scripts/android/language_textures.py`) |
 | `android/src/profile_flush.c` | Compiled into training modules only |
-| `android/java/dev/bluewake/android/` | The activity (SDL's, a 60 Hz display request) and the touch overlay |
+| `android/java/dev/bluewake/android/` | The activity (SDL's; the 60 or 120 Hz display-mode request) and the touch overlay |
 | `android/AndroidManifest.xml`, `android/res/` | The manifest and the icon (the iOS app's) |
 | `scripts/android/build.py`, `install.py` | The builder (on top of `scripts/windows/build.py`) and the installer |
 
-Outside these, the port changes three lines of shared code: Android's Back opens the options menu
-(`runtime/host/src/settings_menu.cpp`), `cmake/composite` accepts extra sources for the training module, and
-`.gitignore` ignores APKs, `.so` files and keystores.
+Outside these, the port changes little shared code: the options menu's Android entries
+(`runtime/host/src/settings_menu.cpp`: Back opens the menu, 2.25x, the panel's rate, the language),
+`cmake/composite` accepts extra sources for the training module, the Windows builder's job sizing takes an
+optional per-job memory budget, and `.gitignore` ignores APKs, `.so` files and keystores. The language
+overlay wraps GXRuntime's disc layer at link time (`android/CMakeLists.txt`), so RecompCore is unchanged.
 
 The Android port was written with substantial AI assistance (Claude), like the rest of the project; the status
 above records what was checked, and on what.
