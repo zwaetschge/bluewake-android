@@ -798,18 +798,22 @@ static void host_mods_enable(void* lib, CPUState* cpu) {
         if (on && strcmp(mod, "betterww") == 0)
             g_options_mod = true;
     }
-    // The two widescreen mods patch the same code for different shapes; the
-    // composite has no variant for both. 16:10 wins over 16:9 if asked for both.
-    int ws169 = -1, ws1610 = -1;
-    for (u32 i = 0; i < available && name != NULL; ++i) {
-        const char* mod = name(i);
-        if (mod != NULL && strcmp(mod, "widescreen") == 0) ws169 = (int)i;
-        if (mod != NULL && strcmp(mod, "widescreen1610") == 0) ws1610 = (int)i;
-    }
-    if (ws169 >= 0 && ws1610 >= 0 && (g_mod_mask & (1u << ws169)) && (g_mod_mask & (1u << ws1610))) {
-        fprintf(stderr, "[mods] widescreen and widescreen1610 are exclusive; keeping widescreen1610\n");
-        g_mod_mask &= ~(1u << ws169);
-    }
+    // The widescreen mods patch the same code for different shapes; the
+    // composite has no variant for two of them. If asked for several, 21:9
+    // wins over 16:10, and 16:10 over 16:9.
+    static const char* const kWidescreens[] = {"widescreen2109", "widescreen1610", "widescreen"};
+    bool kept = false;
+    for (u32 w = 0; w < 3u; ++w)
+        for (u32 i = 0; i < available && name != NULL; ++i) {
+            const char* mod = name(i);
+            if (mod == NULL || strcmp(mod, kWidescreens[w]) != 0 || !(g_mod_mask & (1u << i)))
+                continue;
+            if (kept) {
+                fprintf(stderr, "[mods] the widescreen mods are exclusive; dropping %s\n", mod);
+                g_mod_mask &= ~(1u << i);
+            }
+            kept = true;
+        }
     for (u32 i = 0; i < available && name != NULL; ++i) {
         const char* mod = name(i);
         const bool on = (g_mod_mask & (1u << i)) != 0u;
@@ -6034,9 +6038,61 @@ static bool host_bundle_defaults(char* module, size_t module_size) {
    turn on the matching widescreen mod (a wider camera, culling and HUD) and
    ask the renderer for a frame buffer of that shape (DOL_AURORA_ASPECT_RATIO),
    which also sizes the window unless DOL_AURORA_WINDOW does. Explicit
-   BLUEWAKE_MODS or DOL_AURORA_ASPECT_RATIO settings are kept. */
+   BLUEWAKE_MODS or DOL_AURORA_ASPECT_RATIO settings are kept. "auto" takes the
+   widest of them that the screen holds, from BLUEWAKE_DISPLAY_ASPECT (the
+   screen's width over its height at launch; Android's activity sets it), and
+   is 4:3 without it. When the screen is within 3 percent of that shape (a
+   Galaxy Z Fold 8's 1.58 cover screen and 16:10, its 1.32 inner one and 4:3),
+   the frame buffer takes the screen's exact shape, so no thin bars remain;
+   the picture is then off its shape by at most that much, which nobody sees. */
+static const char* host_auto_aspect(void) {
+    const char* display = getenv("BLUEWAKE_DISPLAY_ASPECT");
+    const double shape = display != NULL ? strtod(display, NULL) : 0.0;
+    const char* chosen = shape >= 2.2 ? "21:9" : shape >= 1.70 ? "16:9" : shape >= 1.55 ? "16:10" : "4:3";
+    const double target = strcmp(chosen, "21:9") == 0 ? 7.0 / 3.0 : strcmp(chosen, "16:9") == 0 ? 16.0 / 9.0
+                        : strcmp(chosen, "16:10") == 0 ? 1.6 : 4.0 / 3.0;
+    if (shape / target >= 0.97 && shape / target <= 1.03) {
+        char ratio[32];
+        snprintf(ratio, sizeof ratio, "%.4f", shape);
+        setenv("DOL_AURORA_ASPECT_RATIO", ratio, 0);
+    }
+    fprintf(stderr, "[aspect] auto: screen %.4f -> %s (frame buffer %s)\n", shape, chosen,
+            getenv("DOL_AURORA_ASPECT_RATIO") ? getenv("DOL_AURORA_ASPECT_RATIO") : "the code's shape");
+    return chosen;
+}
+
+/* A game module built before the 21:9 code has no widescreen2109: take 16:9
+   with a 16:9 frame buffer instead of a stretched picture. Runs after the
+   module is loaded and before the renderer reads DOL_AURORA_ASPECT_RATIO. */
+static void host_aspect_check_module(void* lib) {
+    const char* mods = getenv("BLUEWAKE_MODS");
+    if (mods == NULL || strstr(mods, "widescreen2109") == NULL)
+        return;
+    typedef u32 (*CountFn)(void);
+    typedef const char* (*NameFn)(u32);
+    CountFn count = (CountFn)dlsym(lib, "bluewake_composite_mod_count");
+    NameFn name = (NameFn)dlsym(lib, "bluewake_composite_mod_name");
+    for (u32 i = 0, n = count ? count() : 0u; i < n && name != NULL; ++i)
+        if (name(i) != NULL && strcmp(name(i), "widescreen2109") == 0)
+            return;
+    char list[256] = "";
+    for (const char* p = mods; *p != '\0';) {
+        const char* end = strchr(p, ',');
+        const size_t len = end ? (size_t)(end - p) : strlen(p);
+        if (!(len == 14 && strncmp(p, "widescreen2109", 14) == 0))
+            snprintf(list + strlen(list), sizeof list - strlen(list), "%s%.*s", list[0] ? "," : "", (int)len, p);
+        p = end ? end + 1 : p + len;
+    }
+    snprintf(list + strlen(list), sizeof list - strlen(list), "%swidescreen", list[0] ? "," : "");
+    setenv("BLUEWAKE_MODS", list, 1);
+    setenv("DOL_AURORA_ASPECT_RATIO", "1.7778", 1);
+    fprintf(stderr, "[aspect] this game module has no 21:9 code (built before it); 16:9 instead\n");
+}
+
 static void host_apply_aspect(void) {
     const char* aspect = getenv("BLUEWAKE_ASPECT");
+    if (aspect != NULL && strcmp(aspect, "auto") == 0)
+        aspect = host_auto_aspect();
     if (aspect == NULL || aspect[0] == '\0' || strcmp(aspect, "4:3") == 0)
         return;
     const char* mod = NULL;
@@ -6044,11 +6100,14 @@ static void host_apply_aspect(void) {
     if (strcmp(aspect, "16:10") == 0) {
         mod = "widescreen1610";
         ratio = "1.6";
+    } else if (strcmp(aspect, "21:9") == 0) {
+        mod = "widescreen2109";
+        ratio = "2.3333";
     } else if (strcmp(aspect, "16:9") == 0) {
         mod = "widescreen";
         ratio = "1.7778";
     } else {
-        fprintf(stderr, "[aspect] unknown BLUEWAKE_ASPECT=%s (4:3, 16:10 or 16:9); keeping 4:3\n", aspect);
+        fprintf(stderr, "[aspect] unknown BLUEWAKE_ASPECT=%s (4:3, 16:10, 16:9 or 21:9); keeping 4:3\n", aspect);
         return;
     }
     setenv("DOL_AURORA_ASPECT_RATIO", ratio, 0);
@@ -6893,6 +6952,7 @@ int main(int argc, char** argv) {
 
     void* lib = dlopen(dylib_path, RTLD_NOW | RTLD_LOCAL);
     if (!lib) { fprintf(stderr, "dlopen: %s\n", dlerror()); return 1; }
+    host_aspect_check_module(lib);
 
     GetModuleFn get_module = (GetModuleFn)dlsym(lib, "staticrecomp_get_module");
     if (!get_module) { fprintf(stderr, "dlsym: %s\n", dlerror()); return 1; }

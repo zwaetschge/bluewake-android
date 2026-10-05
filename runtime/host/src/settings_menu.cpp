@@ -321,13 +321,19 @@ void hd_pack_download() {
 #endif
 
 void display_tab() {
-    static const char* const kAspects[] = {"4:3 (the game's)", "16:10", "16:9"};
-    static const char* const kAspectValues[] = {"4:3", "16:10", "16:9"};
+    static const char* const kAspects[] = {"4:3 (the game's)", "16:10", "16:9", "21:9", "Auto (the screen's shape)"};
+    static const char* const kAspectValues[] = {"4:3", "16:10", "16:9", "21:9", "auto"};
+    // "Auto" needs the screen's shape at launch, which only Android's activity gives.
+#if defined(BLUEWAKE_ANDROID) && BLUEWAKE_ANDROID
+    const int aspects = 5;
+#else
+    const int aspects = 4;
+#endif
     int aspect = 0;
-    for (int i = 0; i < 3; ++i)
+    for (int i = 0; i < aspects; ++i)
         if (g_aspect == kAspectValues[i])
             aspect = i;
-    if (combo("Aspect ratio", &aspect, kAspects, 3)) {
+    if (combo("Aspect ratio", &aspect, kAspects, aspects)) {
         g_aspect = kAspectValues[aspect];
         g_dirty = g_restart_pending = true;
     }
@@ -342,7 +348,7 @@ void display_tab() {
 
     // 2.25 is FullHD at 16:9 (480 x 2.25 = 1080 lines, x1.7778 = 1920 wide),
     // a phone panel's own pixels: the frame buffer stops being resampled.
-    static const char* const kScales[] = {"The window's pixels", "1x (480 lines)", "2x (960)",
+    static const char* const kScales[] = {"Native (the window's pixels)", "1x (480 lines)", "2x (960)",
                                           "2.25x (1080p)", "3x (1440)", "4x (1920)"};
     static const float kScaleValues[] = {0.f, 1.f, 2.f, 2.25f, 3.f, 4.f};
     const float chosen_scale = std::strtof(env("DOL_AURORA_RENDER_SCALE", "0").c_str(), nullptr);
@@ -375,10 +381,11 @@ void display_tab() {
     // because a panel switched to 60 reports 60 and Smooth Motion steps back
     // down. Off Android the setting is dead: only Android pins a rate.
     if (std::string(SDL_GetPlatform()) == "Android") {
-        static const char* const kRefresh[] = {"60 Hz (saves power)", "120 Hz (needs the panel's)"};
-        int rate = std::atoi(env("BLUEWAKE_REFRESH", "60").c_str()) >= 120 ? 1 : 0;
+        static const char* const kRefresh[] = {"60 Hz (saves power)", "Native (the panel's highest)"};
+        const std::string refresh = env("BLUEWAKE_REFRESH", "native");
+        int rate = refresh == "60" ? 0 : 1;
         if (combo("Panel refresh rate", &rate, kRefresh, 2)) {
-            set_env("BLUEWAKE_REFRESH", rate == 1 ? "120" : "60");
+            set_env("BLUEWAKE_REFRESH", rate == 1 ? "native" : "60");
             g_dirty = g_restart_pending = true;
         }
         restart_note();

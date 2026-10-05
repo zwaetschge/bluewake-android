@@ -578,7 +578,8 @@ int main(void) {
         (m / "option-sites.txt").write_bytes(listed.replace(b"\r\n", b"\n"))
         sites = ("--option-sites", m / "option-sites.txt")
 
-        for name, gecko in (("widescreen", "GZLE01.gecko"), ("widescreen1610", "GZLE01-16x10.gecko")):
+        for name, gecko in (("widescreen", "GZLE01.gecko"), ("widescreen1610", "GZLE01-16x10.gecko"),
+                            ("widescreen2109", "GZLE01-21x9.gecko")):
             print(name)
             (m / name).mkdir(exist_ok=True)
             self.run(f"mods-{name}-gecko", [sys.executable, ROOT / "scripts/mods/gecko_apply.py",
@@ -598,7 +599,8 @@ int main(void) {
         self.composite(m / "betterww/translated/dol/generated", m / "betterww/translated/rels/generated/rels",
                        o / "game/rels", o / "game/main.dol", m / "betterww/composite-src", "mods-betterww-composite")
 
-        for combo, widescreen in (("combo", "widescreen"), ("combo1610", "widescreen1610")):
+        for combo, widescreen in (("combo", "widescreen"), ("combo1610", "widescreen1610"),
+                                  ("combo2109", "widescreen2109")):
             print(f"{widescreen} + Better Wind Waker options")
             (m / combo).mkdir(exist_ok=True)
             self.translate(m / widescreen / "main.dol", m / combo / "translated", name=f"mods-{combo}-translate",
@@ -623,8 +625,11 @@ int main(void) {
             "--mod", "widescreen1610:mods/widescreen1610/composite-src:mods/widescreen1610/main.dol:"
                      "mods/widescreen1610/runtime.json",
             "--combo", "widescreen+betterww:mods/combo/composite-src",
+            "--mod", "widescreen2109:mods/widescreen2109/composite-src:mods/widescreen2109/main.dol:"
+                     "mods/widescreen2109/runtime.json",
             "--combo", "widescreen1610+betterww:mods/combo1610/composite-src",
-            "--exclusive", "widescreen,widescreen1610",
+            "--combo", "widescreen2109+betterww:mods/combo2109/composite-src",
+            "--exclusive", "widescreen,widescreen1610,widescreen2109",
             "--options", options, "--rels-bin-dir", o / "game/rels"], cwd=o)
         dst = o / "composite-src"
         if (base / "generated.h").read_bytes() != (dst / "generated.h").read_bytes():

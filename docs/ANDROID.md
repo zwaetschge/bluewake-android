@@ -43,9 +43,10 @@ the Fold 7 with the trained module, Link standing on Outset, the phone charging:
 
 The game's work per frame (instructions counted with `simpleperf stat`) and its memory (about 850 MB once on
 Outset) stay flat over a session: the slowdown after several minutes of play is the frequency limit, not a leak.
-So on a phone, power is speed: by default the Android build asks for a 60 Hz display mode (not 120), leaves
-Smooth Motion off, and lowering the render resolution (the GPU was 72 percent busy at 2x) or playing unplugged
-keeps the limit higher for longer. The options menu can ask for the panel's 120 Hz instead (below).
+So on a phone, power is speed: a 60 Hz display mode, Smooth Motion off, a lower render resolution (the GPU was
+72 percent busy at 2x) or playing unplugged keeps the limit higher for longer. The defaults are native all the
+same (below): the screen's pixels, the panel's highest rate with Smooth Motion matching it, and the widescreen
+code that fits the screen; the options menu has the cooler choices.
 
 Not yet tried: other Android versions and GPUs (Mali, older Adreno), external game controllers in depth (they
 go through SDL, as on Windows), and the later game.
@@ -187,12 +188,16 @@ never does.
   C-stick (the camera). They hide while a game controller is connected.
 - **Controllers**: through SDL, as a GameCube pad (as on Windows).
 - **Options**: the Back button or gesture (or a controller's Back/Select) opens the options menu over the paused
-  game: display, controls, mods (4:3, 16:10 or 16:9, Better Wind Waker, quick doors). Touch works in it.
-  Android adds three entries: **Render resolution 2.25x (1080p)** (16:9 at a phone panel's own 1920x1080),
-  **Panel refresh rate** (60 Hz, the default, or 120 Hz, which Smooth Motion's 120 frames need; the activity
-  asks for the panel's same-resolution display mode at every launch and resume, as SDL3 has no display-mode
-  call on Android), **Download Hypatia's HD pack** under the texture pack (below) and **Gameplay > Language**
-  (below).
+  game: display, controls, mods (4:3, 16:10, 16:9 or 21:9, Better Wind Waker, quick doors). Touch works in it.
+  Android adds: **Aspect ratio Auto** (the default: at launch the activity reports the screen's shape,
+  `BLUEWAKE_DISPLAY_ASPECT`, and `main.c` takes the widest widescreen code it holds: 21:9 from 2.2, 16:9 from
+  1.7, 16:10 from 1.55, else 4:3; within 3 percent of that shape the frame buffer takes the screen's exact one,
+  so a Galaxy Z Fold 8 fills its 1.58 cover screen with 16:10 and its 1.32 inner screen with 4:3; the shape is
+  chosen at launch, so after folding or unfolding the next launch fits the other screen), **Render resolution 2.25x (1080p)** besides **Native** (the default: the frame
+  buffer is the window's pixels, so it follows a foldable folded and unfolded), **Panel refresh rate** (Native,
+  the default: the panel's highest same-resolution display mode, asked for at every launch, resume and fold, as
+  SDL3 has no display-mode call on Android; or 60 Hz), **Download Hypatia's HD pack** under the texture pack
+  (below) and **Gameplay > Language** (below). Smooth Motion defaults to matching the display.
 - **HD texture pack download**: the button fetches Hypatia's pack (v2.0001a, Android-Lite, a 500 MB 7z) from the
   Google Drive link in its Dolphin forum thread (`android/java/dev/bluewake/android/HdPack.java`, after a check
   for 1.2 GB of free space), unpacks only its `GZL` folder into `files/Load/Textures/GZLE01` and sets that as
@@ -201,8 +206,8 @@ never does.
   file's CRC, and swaps the new `GZL` in only when all of it unpacked. The progress shows in the menu; a refused
   download (Drive's daily quota) or a damaged archive is reported there and in the session log (`[hd-pack]`).
   Nothing of the pack is in the APK or the repository.
-- The picture keeps the game's shape and renders at twice the GameCube's 480 lines by default; the mouse camera
-  is off (touches would reach it as clicks).
+- The picture keeps its shape inside the screen (bars where the screen is wider or narrower than the chosen
+  aspect); the mouse camera is off (touches would reach it as clicks).
 
 ### Other languages
 

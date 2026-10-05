@@ -46,6 +46,7 @@ public class BlueWakeActivity extends SDLActivity implements InputManager.InputD
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         applyRefreshRate();
+        reportDisplayShape();
         if (mLayout != null) {
             touchControls = new TouchControlsView(this);
             mLayout.addView(touchControls, new ViewGroup.LayoutParams(
@@ -80,7 +81,7 @@ public class BlueWakeActivity extends SDLActivity implements InputManager.InputD
     // what the system's thermal manager lowers the game's clocks for. At 120
     // Smooth Motion's 120-frames preset needs the panel to actually switch.
     private void applyRefreshRate() {
-        int wanted = 60;
+        int wanted = 100000;  // "native" or unset: the panel's highest rate
         final String prefix = "BLUEWAKE_REFRESH=";
         java.io.File settings = new java.io.File(getExternalFilesDir(null), "settings.ini");
         if (settings.isFile()) {
@@ -91,6 +92,7 @@ public class BlueWakeActivity extends SDLActivity implements InputManager.InputD
                         continue;
                     try {
                         wanted = Integer.parseInt(line.substring(prefix.length()).trim());
+                        if (wanted >= 120) wanted = 100000;  // the old "120": the panel's highest
                     } catch (NumberFormatException ignored) {
                     }
                     break;
@@ -123,6 +125,30 @@ public class BlueWakeActivity extends SDLActivity implements InputManager.InputD
     protected void onResume() {
         super.onResume();
         applyRefreshRate();  // the mode request does not survive pause and resume
+    }
+
+    // Folding or unfolding moves the game to the other screen, which has its
+    // own modes: ask again there.
+    @Override
+    public void onConfigurationChanged(android.content.res.Configuration config) {
+        super.onConfigurationChanged(config);
+        applyRefreshRate();
+    }
+
+    // The screen's shape at launch, for BLUEWAKE_ASPECT=auto (main.c), in landscape.
+    private void reportDisplayShape() {
+        android.view.Display display = getDisplay();
+        if (display == null)
+            return;
+        android.view.Display.Mode mode = display.getMode();
+        float w = Math.max(mode.getPhysicalWidth(), mode.getPhysicalHeight());
+        float h = Math.min(mode.getPhysicalWidth(), mode.getPhysicalHeight());
+        if (h <= 0)
+            return;
+        try {
+            nativeSetenv("BLUEWAKE_DISPLAY_ASPECT", String.format(java.util.Locale.ROOT, "%.4f", w / h));
+        } catch (UnsatisfiedLinkError ignored) {  // the library failed to load; SDL says so
+        }
     }
 
     @Override

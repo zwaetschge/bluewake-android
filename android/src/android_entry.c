@@ -249,10 +249,17 @@ int main(int argc, char** argv) {
     bw_default("BLUEWAKE_OVERLAP_OBSERVATION", "0");
     bw_default("BLUEWAKE_NATIVE_MATH", "1");
     bw_default("DOL_AURORA_FULLSCREEN", "1");
-    // A phone's screen is never 4:3: keep the game's shape, as on iOS, and
-    // render at twice the GameCube's 480 lines (the options menu changes both).
+    // Keep the picture's shape inside the screen, as on iOS, and render at the
+    // screen's own pixels: the frame buffer follows the window, so a foldable
+    // stays native folded and unfolded. The widescreen code that fits the
+    // screen's shape at launch ("auto", main.c), and Smooth Motion matching the
+    // panel's rate, which the activity sets to its highest. The options menu
+    // changes each; on a hot phone, lower ones keep the clocks up for longer.
     bw_default("DOL_AURORA_ASPECT_FIT", "1");
-    bw_default("DOL_AURORA_RENDER_SCALE", "2");
+    bw_default("DOL_AURORA_RENDER_SCALE", "0");
+    bw_default("BLUEWAKE_ASPECT", "auto");
+    bw_default("DOL_AURORA_FRAME_INTERP", "1");
+    bw_default("DOL_AURORA_FRAME_INTERP_STEPS", "display");
     // Touches arrive as mouse events too: the mouse camera would take every
     // tap as a click on the game (A) and a camera grab.
     bw_default("BLUEWAKE_MOUSE_CAMERA", "0");

@@ -52,6 +52,15 @@ translate "$M/widescreen1610/main.dol" "$M/widescreen1610/translated"
 composite "$M/widescreen1610/translated/dol/generated" "$B/translated/rels/generated/rels" "$B/game/rels" \
     "$M/widescreen1610/main.dol" "$M/widescreen1610/composite-src"
 
+echo "==> widescreen 21:9"
+# Extrapolated from the 16:9 code; see scripts/mods/widescreen_aspect.py.
+mkdir -p "$M/widescreen2109"
+python3 "$root/scripts/mods/gecko_apply.py" "$root/mods/widescreen/GZLE01-21x9.gecko" "$B/game/main.dol" \
+    "$M/widescreen2109/main.dol" "$M/widescreen2109/runtime.json"
+translate "$M/widescreen2109/main.dol" "$M/widescreen2109/translated"
+composite "$M/widescreen2109/translated/dol/generated" "$B/translated/rels/generated/rels" "$B/game/rels" \
+    "$M/widescreen2109/main.dol" "$M/widescreen2109/composite-src"
+
 echo "==> Better Wind Waker options"
 # The game's own executable and modules, translated with the option sites; the
 # variants are the chunks that hold a site (docs/MODS.md).
@@ -72,6 +81,12 @@ mkdir -p "$M/combo1610"
 translate "$M/widescreen1610/main.dol" "$M/combo1610/translated"
 composite "$M/combo1610/translated/dol/generated" "$M/betterww/translated/rels/generated/rels" \
     "$B/game/rels" "$M/widescreen1610/main.dol" "$M/combo1610/composite-src"
+
+echo "==> widescreen 21:9 + Better Wind Waker options"
+mkdir -p "$M/combo2109"
+translate "$M/widescreen2109/main.dol" "$M/combo2109/translated"
+composite "$M/combo2109/translated/dol/generated" "$M/betterww/translated/rels/generated/rels" \
+    "$B/game/rels" "$M/widescreen2109/main.dol" "$M/combo2109/composite-src"
 sites=()
 
 echo "==> variants into $B/composite-src"
@@ -83,8 +98,10 @@ python3 "$root/scripts/mods/build_mod_variants.py" --composite-src "$M/composite
     --mod "betterww:$M/betterww/composite-src:$B/game/main.dol" \
     --mod "widescreen1610:$M/widescreen1610/composite-src:$M/widescreen1610/main.dol:$M/widescreen1610/runtime.json" \
     --combo "widescreen+betterww:$M/combo/composite-src" \
+    --mod "widescreen2109:$M/widescreen2109/composite-src:$M/widescreen2109/main.dol:$M/widescreen2109/runtime.json" \
     --combo "widescreen1610+betterww:$M/combo1610/composite-src" \
-    --exclusive widescreen,widescreen1610 \
+    --combo "widescreen2109+betterww:$M/combo2109/composite-src" \
+    --exclusive widescreen,widescreen1610,widescreen2109 \
     --options "$options" --rels-bin-dir "$B/game/rels"
 if ! cmp -s "$M/composite-src.base/generated.h" "$B/composite-src/generated.h"; then
     echo "build_mods: $B/composite-src was generated from other inputs; rebuild it first" >&2

@@ -46,10 +46,13 @@ try it on another device, please report how it went (see [Getting help](#getting
 - **Touch controls**: stick, A/B/X/Y, L/R/Z, START and a D-pad, with the camera on the right half of the
   screen. They hide while a controller is connected.
 - **Controllers** through SDL, as a GameCube pad, with button remapping.
-- **Options menu** on the Back button or gesture, over the paused game: aspect ratio (4:3, 16:10, 16:9),
-  render resolution up to 4× (with **2.25×, exactly 1080p** at 16:9), the panel's **60 or 120 Hz**,
-  Smooth Motion, an HD texture pack (Hypatia's downloads from the menu), Better Wind Waker, gameplay
-  extras and controls.
+- **Native by default**: the screen's own resolution and its highest refresh rate, with Smooth Motion
+  matching it, and the widescreen picture that fits the screen's shape (4:3, 16:10, 16:9 or **21:9** for a
+  foldable's cover screen or a phone held sideways). On a foldable the resolution follows the screen as you
+  fold and unfold; the picture's shape and the rate are chosen again at the next launch.
+- **Options menu** on the Back button or gesture, over the paused game: aspect ratio, render resolution
+  (native, or 1× to 4×), the panel's rate (native or 60 Hz), Smooth Motion, an HD texture pack (Hypatia's
+  downloads from the menu), Better Wind Waker, gameplay extras and controls.
 - **The game in German, French, Spanish or Italian** from your European disc, built in the app as the
   game loads: see [Other languages](#other-languages).
 
@@ -91,9 +94,9 @@ adds the European disc).
 
 - **Options:** press Back (or swipe back, or a controller's Back/Select). Changes marked "next launch"
   apply when the game starts again.
-- **Frame rate:** the game runs at 30 FPS, its own rate. On a phone, heat lowers the CPU's clocks, so the
-  default is the power-saving choice: a 60 Hz panel, Smooth Motion off, twice the GameCube's resolution.
-  Handhelds with active cooling can afford more: 2.25× and 120 Hz with Smooth Motion.
+- **Frame rate:** the game's logic runs at 30, its own rate; Smooth Motion shows in-between frames up to the
+  panel's rate (120 on most current phones). On a phone, heat lowers the CPU's clocks over a long session:
+  if the game slows down, choose a 60 Hz panel, Smooth Motion off or a lower render resolution.
 - **HD textures:** **Options › Display › Download Hypatia's HD pack** fetches
   [Hypatia's Wind Waker HD pack](https://forums.dolphin-emu.org/Thread-hypatia-s-tloz-the-wind-waker-hd-pack-v2-0001a)
   (v2.0001a, its Android-Lite build, 500 MB) from the download link in its Dolphin forum thread, unpacks it

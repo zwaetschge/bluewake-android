@@ -153,7 +153,7 @@ void load_file() {
         else if (k == "haptics") d.haptics = v == "off" ? 0 : v == "classic" ? 1 : 2;
         else if (k == "haptics_strength") d.haptics_strength = std::clamp(std::atoi(v.c_str()), 0, 100);
         else if (k == "haptics_triggers") d.haptics_triggers = parse_bool(v);
-        else if (k == "aspect") d.aspect = (v == "16:9" || v == "16:10") ? v : "4:3";
+        else if (k == "aspect") d.aspect = (v == "16:9" || v == "16:10" || v == "21:9") ? v : "4:3";
         else if (k == "keep_aspect") d.keep_aspect = parse_bool(v);
         else if (k == "betterww") d.betterww = parse_bool(v);
         else if (k.rfind("option.", 0) == 0) d.options[k.substr(7)] = parse_bool(v);
@@ -234,7 +234,7 @@ void env_default(const char* name, const std::string& value) {
 }
 
 double aspect_ratio(const std::string& aspect) {
-    return aspect == "16:9" ? 16.0 / 9.0 : aspect == "16:10" ? 1.6 : 4.0 / 3.0;
+    return aspect == "16:9" ? 16.0 / 9.0 : aspect == "16:10" ? 1.6 : aspect == "21:9" ? 21.0 / 9.0 : 4.0 / 3.0;
 }
 
 // A window a good size for this screen: the tallest multiple of 240 lines that
@@ -738,7 +738,8 @@ void tab_enhancements() {
     restart_note(d.aspect != g_launched.aspect);
     const char* const aspects[][2] = {{"4:3", "4:3, the game's own"},
                                       {"16:10", "16:10 widescreen"},
-                                      {"16:9", "16:9 widescreen"}};
+                                      {"16:9", "16:9 widescreen"},
+                                      {"21:9", "21:9 ultrawide"}};
     for (const auto& a : aspects) {
         if (ImGui::RadioButton(a[1], d.aspect == a[0])) {
             d.aspect = a[0];

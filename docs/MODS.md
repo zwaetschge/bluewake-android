@@ -7,6 +7,7 @@ BlueWake starts, and none of them changes your saves.
 | --- | --- | --- |
 | Widescreen 16:9 | The community 16:9 code (Dolphin's GZLE01 Gecko code): a wider field of view with the HUD placed for 16:9, letterboxed on a 4:3 iPad | Nothing; it is built in |
 | Widescreen 16:10 | The same code with its aspect-dependent values recomputed for 16:10 (Mac displays, most iPads' shape is closer to it); one widescreen mod at a time | Nothing; it is built in |
+| Widescreen 21:9 | The same code with its values extrapolated to 21:9 (ultrawide monitors, a phone held sideways, a foldable's cover screen); `BLUEWAKE_ASPECT=21:9` | Nothing; it is built in |
 | HD Texture Pack | Replaces the game's textures with a Dolphin-format pack, such as [Hypatia's HD pack](https://forums.dolphin-emu.org/Thread-hypatia-s-tloz-the-wind-waker-hd-pack-v2-0001a) | The pack's `tex1_…` images in `Documents/BlueWake/Load/Textures/GZLE01` |
 | Better Wind Waker | [Better Wind Waker](https://github.com/WideBoner/betterww)'s quality-of-life changes from Wind Waker HD, each its own setting: Swift or Brisk Sail, instant text, faster rolling, grappling, block pushing, climbing and crawling, Tingle Chests without the Tuner, an unrestricted boat, no song replays, turning while swinging, a faster Ballad of Gales, skipping the opening movie, an inverted camera, a revealed sea chart | Nothing; it is built in |
 

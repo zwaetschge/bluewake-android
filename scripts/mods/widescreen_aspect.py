@@ -17,6 +17,7 @@ only reach the existing pool around r2, so it takes the nearest constant there;
 the choices for 16:10 are within about a pixel except one picture width (+6).
 
     widescreen_aspect.py 16:10 > mods/widescreen/GZLE01-16x10.gecko
+    widescreen_aspect.py 21:9 > mods/widescreen/GZLE01-21x9.gecko
 """
 import math
 import struct
@@ -61,13 +62,15 @@ R2 = 0x803FFD00
 # (0 at 4:3), 206 the rupee counter x (320 at 4:3), 79 and 480 a picture's x
 # and width (0 and 640 at 4:3), 1.3333 the boomerang sight's x scale (1 at 4:3).
 POOL_SWAPS = {
-    -27188: {"16:10": -21536},  # 114.0  -> 68.0   (wants 68.4)
-    -28500: {"16:10": -19520},  # 206.0  -> 250.5  (wants 251.6)
-    -17768: {"16:10": -23268},  # 79.0   -> 47.0   (wants 47.4)
-    -17640: {"16:10": -31580},  # 480.0  -> 550.0  (wants 544)
-    -30556: {"16:10": -32212},  # 1.3333 -> 1.2    (wants 1.2)
+    -27188: {"16:10": -21536, "21:9": -29664},  # 114.0  -> 68.0, 256.0 (wants 68.4, 256.5)
+    -28500: {"16:10": -19520, "21:9": -31484},  # 206.0  -> 250.5, 64.0 (wants 251.6, 63.5)
+    -17768: {"16:10": -23268, "21:9": -21412},  # 79.0   -> 47.0, 178.0 (wants 47.4, 177.75)
+    -17640: {"16:10": -31580, "21:9": -22912},  # 480.0  -> 550.0, 280.0 (wants 544, 280)
+    -30556: {"16:10": -32212, "21:9": -32576},  # 1.3333 -> 1.2, 1.75 (wants 1.2, 1.75)
 }
-ASPECTS = {"16:9": ASPECT_169, "16:10": 16.0 / 10.0}
+# 21:9 (a foldable's cover screen, a phone held sideways, an ultrawide monitor)
+# lies beyond 16:9, so its values are extrapolated the same way (t = 2.25).
+ASPECTS = {"16:9": ASPECT_169, "16:10": 16.0 / 10.0, "21:9": 21.0 / 9.0}
 
 
 def f32_bits(v):
