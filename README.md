@@ -48,7 +48,8 @@ try it on another device, please report how it went (see [Getting help](#getting
 - **Controllers** through SDL, as a GameCube pad, with button remapping.
 - **Options menu** on the Back button or gesture, over the paused game: aspect ratio (4:3, 16:10, 16:9),
   render resolution up to 4× (with **2.25×, exactly 1080p** at 16:9), the panel's **60 or 120 Hz**,
-  Smooth Motion, an HD texture pack, Better Wind Waker, gameplay extras and controls.
+  Smooth Motion, an HD texture pack (Hypatia's downloads from the menu), Better Wind Waker, gameplay
+  extras and controls.
 - **The game in German, French, Spanish or Italian** from your European disc, built in the app as the
   game loads: see [Other languages](#other-languages).
 
@@ -88,11 +89,12 @@ Add `--pal GZLP01.iso` to `install.py` to push your European disc as well.
 - **Frame rate:** the game runs at 30 FPS, its own rate. On a phone, heat lowers the CPU's clocks, so the
   default is the power-saving choice: a 60 Hz panel, Smooth Motion off, twice the GameCube's resolution.
   Handhelds with active cooling can afford more: 2.25× and 120 Hz with Smooth Motion.
-- **HD textures:** copy a Dolphin texture pack's `GZL` folder into the app's folder as
-  `files/Load/Textures/GZLE01/GZL`, then enter
-  `/storage/emulated/0/Android/data/dev.bluewake.BlueWake/files/Load/Textures/GZLE01` under
-  **Options › Display › HD texture pack**.
-  Hypatia's pack works; its Android "Lite" builds are lighter on memory.
+- **HD textures:** **Options › Display › Download Hypatia's HD pack** fetches
+  [Hypatia's Wind Waker HD pack](https://forums.dolphin-emu.org/Thread-hypatia-s-tloz-the-wind-waker-hd-pack-v2-0001a)
+  (v2.0001a, its Android-Lite build, 500 MB) from the download link in its Dolphin forum thread, unpacks it
+  on the device (530 MB) and selects it; it is used from the next launch. The pack is not part of this app
+  or this repository. Any other Dolphin pack works by hand: copy its `GZL` folder to
+  `files/Load/Textures/GZLE01/GZL` and enter that `GZLE01` folder under **HD texture pack**.
 
 ### Other languages
 

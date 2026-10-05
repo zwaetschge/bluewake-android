@@ -90,6 +90,8 @@ add_library(main SHARED
     src/android_entry.c
     src/android_touch.c
     src/language_overlay.c
+    src/hd_pack.c
+    src/hd_pack_7z.c
     ${BLUEWAKE_HOST_SOURCES})
 # The unchanged host keeps its own entry point under another name; the shim
 # owns SDL_main and hands over after setting the defaults.
@@ -121,6 +123,23 @@ target_link_options(main PRIVATE "LINKER:-u,JNI_OnLoad"
 # the GX worker and 4 percent of the render thread on the Fold 7. Nothing
 # loaded before libmain defines them, so nothing could interpose them anyway.
 target_link_options(main PRIVATE "LINKER:-Bsymbolic-functions")
+# The LZMA SDK's 7z decoder (C/, public domain), for unpacking the HD texture
+# pack the options menu downloads (src/hd_pack_7z.c).
+include(FetchContent)
+FetchContent_Declare(lzma_sdk
+    URL https://github.com/ip7z/7zip/archive/refs/tags/26.03.tar.gz
+    URL_HASH SHA256=74b11efd8559f9b3dc652e89dc8ebdf4acb66e514a745e44cf75582cdf4512fd)
+FetchContent_MakeAvailable(lzma_sdk)
+set(_lzma ${lzma_sdk_SOURCE_DIR}/C)
+add_library(bluewake_lzma STATIC
+    ${_lzma}/7zArcIn.c ${_lzma}/7zBuf.c ${_lzma}/7zCrc.c ${_lzma}/7zCrcOpt.c ${_lzma}/7zDec.c
+    ${_lzma}/7zStream.c ${_lzma}/7zAlloc.c ${_lzma}/7zFile.c ${_lzma}/CpuArch.c ${_lzma}/LzmaDec.c
+    ${_lzma}/Lzma2Dec.c ${_lzma}/Bra.c ${_lzma}/Bra86.c ${_lzma}/BraIA64.c ${_lzma}/Bcj2.c ${_lzma}/Delta.c)
+target_include_directories(bluewake_lzma PUBLIC ${_lzma})
+target_compile_definitions(bluewake_lzma PUBLIC Z7_EXTRACT_ONLY)
+target_compile_options(bluewake_lzma PRIVATE -w)
+target_link_libraries(main PRIVATE bluewake_lzma)
+
 # The in-app language overlay (src/language_overlay.c) stands in front of
 # GXRuntime's DVD layer: every caller of these three reaches the wrapper.
 target_link_options(main PRIVATE "LINKER:--wrap=dvd_open_image"

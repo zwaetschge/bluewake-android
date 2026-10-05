@@ -56,6 +56,11 @@ of their authors and keep their own terms. The repository carries only the wides
 Better Wind Waker. Personal builds translate both behaviors at those sites from the player's disc;
 the settings select which behavior runs. You add texture packs yourself.
 
+On Android, the options menu can download Hypatia's Wind Waker HD pack for the player, from the download
+link its author published in the pack's Dolphin forum thread; the app unpacks it on the device with the
+LZMA SDK (public domain, fetched at build time). Neither the pack nor any part of it is in this repository
+or in the APK.
+
 The optional Wind Waker HD texture importer (`scripts/import_wwhd_textures.py`)
 extracts artwork only from the user's local disc. Its output, discs, tickets and
 keys are personal data and must never be included in a public release. The

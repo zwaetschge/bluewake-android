@@ -180,7 +180,16 @@ never does.
   Android adds three entries: **Render resolution 2.25x (1080p)** (16:9 at a phone panel's own 1920x1080),
   **Panel refresh rate** (60 Hz, the default, or 120 Hz, which Smooth Motion's 120 frames need; the activity
   asks for the panel's same-resolution display mode at every launch and resume, as SDL3 has no display-mode
-  call on Android) and **Gameplay > Language** (below).
+  call on Android), **Download Hypatia's HD pack** under the texture pack (below) and **Gameplay > Language**
+  (below).
+- **HD texture pack download**: the button fetches Hypatia's pack (v2.0001a, Android-Lite, a 500 MB 7z) from the
+  Google Drive link in its Dolphin forum thread (`android/java/dev/bluewake/android/HdPack.java`, after a check
+  for 1.2 GB of free space), unpacks only its `GZL` folder into `files/Load/Textures/GZLE01` and sets that as
+  the pack (`android/src/hd_pack.c`). The unpacking streams the archive's solid LZMA2 block through the LZMA
+  SDK's decoder (`android/src/hd_pack_7z.c`, about 130 MB of memory instead of the 531 MB block), checks every
+  file's CRC, and swaps the new `GZL` in only when all of it unpacked. The progress shows in the menu; a refused
+  download (Drive's daily quota) or a damaged archive is reported there and in the session log (`[hd-pack]`).
+  Nothing of the pack is in the APK or the repository.
 - The picture keeps the game's shape and renders at twice the GameCube's 480 lines by default; the mouse camera
   is off (touches would reach it as clicks).
 
@@ -211,6 +220,7 @@ menu.
 | `android/src/android_touch.c` | The touch overlay's native end: Aurora's virtual pad |
 | `android/src/language_overlay.c` | Other languages from the European disc, in front of GXRuntime's DVD layer (`--wrap`) |
 | `android/src/language_textures.h` | The file select's save-slot labels per language (`scripts/android/language_textures.py`) |
+| `android/src/hd_pack.c`, `hd_pack_7z.c`, `android/java/.../HdPack.java` | The options menu's HD pack download and the streaming 7z unpacker |
 | `android/src/profile_flush.c` | Compiled into training modules only |
 | `android/java/dev/bluewake/android/` | The activity (SDL's; the 60 or 120 Hz display-mode request) and the touch overlay |
 | `android/AndroidManifest.xml`, `android/res/` | The manifest and the icon (the iOS app's) |

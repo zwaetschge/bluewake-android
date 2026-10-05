@@ -48,6 +48,12 @@ extern "C" {
 extern "C" {
 #if defined(BLUEWAKE_ANDROID) && BLUEWAKE_ANDROID
 const char* bw_lang_overlay_status(void);   // android/src/language_overlay.c
+// android/src/hd_pack.h
+const char* bw_hd_pack_dest(void);
+bool bw_hd_pack_installed(void);
+bool bw_hd_pack_start(void);
+int bw_hd_pack_state(unsigned long long* done, unsigned long long* total, char* message, size_t n);
+bool bw_hd_pack_take_finished(void);
 #endif
 void aurora_set_frame_buffer_scale(float scale);
 void aurora_set_frame_interpolation(bool enabled);
@@ -265,6 +271,54 @@ void refresh_smooth_rate() {
     aurora_set_frame_interp_steps(bw_smooth_steps(requested, mode != nullptr ? mode->refresh_rate : 0.f));
 }
 
+#if defined(BLUEWAKE_ANDROID) && BLUEWAKE_ANDROID
+// Hypatia's HD pack, fetched from its author's own download link and unpacked
+// on the device (android/src/hd_pack.c); once it is in, it becomes the pack.
+void hd_pack_download() {
+    enum { kIdle, kDownloading, kUnpacking, kDone, kFailed };
+    unsigned long long done = 0, total = 0;
+    char message[512];
+    const int state = bw_hd_pack_state(&done, &total, message, sizeof message);
+    const char* dest = bw_hd_pack_dest();
+    if (bw_hd_pack_take_finished()) {
+        std::snprintf(g_texture_pack, sizeof g_texture_pack, "%s", dest);
+        g_dirty = g_restart_pending = true;
+    }
+    char label[96];
+    if (state == kDownloading) {
+        std::snprintf(label, sizeof label, "Downloading %llu of %llu MB", done >> 20, total >> 20);
+        ImGui::ProgressBar(total ? static_cast<float>(done) / static_cast<float>(total) : 0.f, ImVec2(-1.f, 0.f),
+                           label);
+        return;
+    }
+    if (state == kUnpacking) {
+        std::snprintf(label, sizeof label, "Unpacking %llu of %llu MB", done >> 20, total >> 20);
+        ImGui::ProgressBar(total ? static_cast<float>(done) / static_cast<float>(total) : 0.f, ImVec2(-1.f, 0.f),
+                           label);
+        return;
+    }
+    const bool installed = bw_hd_pack_installed();
+    if (ImGui::Button(installed ? "Download Hypatia's HD pack again" : "Download Hypatia's HD pack"))
+        bw_hd_pack_start();
+    if (installed && std::strcmp(g_texture_pack, dest) != 0) {
+        ImGui::SameLine();
+        if (ImGui::Button("Use it")) {
+            std::snprintf(g_texture_pack, sizeof g_texture_pack, "%s", dest);
+            g_dirty = g_restart_pending = true;
+        }
+    }
+    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 30.0f);
+    if (state == kDone)
+        ImGui::TextColored(ImVec4(0.5f, 0.9f, 0.5f, 1.f), "Installed: Hypatia's pack is used from the next launch.");
+    else if (state == kFailed)
+        ImGui::TextColored(ImVec4(1.f, 0.55f, 0.45f, 1.f), "The download failed: %s", message);
+    ImGui::TextDisabled("Hypatia's Wind Waker HD pack (v2.0001a, its Android-Lite build): a 500 MB download from "
+                        "the link in the pack's Dolphin forum thread, 530 MB once unpacked. It is not part of "
+                        "this app; it comes from its author's own link.");
+    ImGui::PopTextWrapPos();
+}
+#endif
+
 void display_tab() {
     static const char* const kAspects[] = {"4:3 (the game's)", "16:10", "16:9"};
     static const char* const kAspectValues[] = {"4:3", "16:10", "16:9"};
@@ -360,6 +414,9 @@ void display_tab() {
         g_dirty = g_restart_pending = true;
     }
     restart_note();
+#if defined(BLUEWAKE_ANDROID) && BLUEWAKE_ANDROID
+    hd_pack_download();
+#endif
 }
 
 void gameplay_tab() {
