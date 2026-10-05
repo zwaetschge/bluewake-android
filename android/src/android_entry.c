@@ -9,7 +9,8 @@
 // The APK (scripts/android/build.py makes it):
 //   lib/arm64-v8a/libmain.so                 the host, GXRuntime, Aurora, SDL3, Dawn
 //   lib/arm64-v8a/libgGZLE01_recomp.so       the translated game module
-// The game's files, never in the APK (scripts/android/install.py pushes them):
+// The game's files, never in the APK: the player chooses the disc in the app
+// (SetupActivity copies it and prepares the rest), or install.py pushes them:
 //   <external>/game/GZLE01.iso               the disc image the game reads
 //   <external>/game/main.dol, game/rels/     prepared from that disc
 //   <external>/game/GZLP01.iso               optional: the European disc, for
@@ -285,8 +286,8 @@ int main(int argc, char** argv) {
         char message[2048];
         snprintf(message, sizeof message,
                  "Wind Waker Recomp cannot start: %s is missing.\n\n%s\n\n"
-                 "Push the game files from your PC with\n"
-                 "python scripts/android/install.py",
+                 "Start the app from its icon and choose your disc image there,\n"
+                 "or push the game files from a PC with scripts/android/install.py.",
                  missing, missing_path);
         fprintf(stderr, "[android] %s\n", message);
         fatal_box(message);

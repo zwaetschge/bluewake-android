@@ -71,16 +71,21 @@ The full list, every builder option and the on-device optimization training are 
 
 ```bash
 python scripts/android/build.py PATH/TO/GZLE01.iso --llvm PATH/TO/llvm --sdk PATH/TO/android-sdk --jdk PATH/TO/jdk-17
-python scripts/android/install.py --launch
 ```
 
-The first command translates the game from your disc and builds `build/android/WindWakerRecomp.apk`
-(the game module's compile alone takes about half an hour on a fast PC; `--device SERIAL` also trains it
-on your device for more speed). The
-second installs it on the connected device and pushes what the game reads from your disc (`main.dol`, the
-415 RELs and the disc image, 1.4 GB, once) to the app's folder. Turn on USB or wireless debugging first.
+This translates the game from your disc and builds `build/android/WindWakerRecomp.apk` (the game module's
+compile alone takes about half an hour on a fast PC; `--device SERIAL` also trains it on your device for more
+speed).
 
-Add `--pal GZLP01.iso` to `install.py` to push your European disc as well.
+Then, on your device:
+
+1. Copy the APK and your disc image (`.iso` or `.gcm`) to the device, and install the APK.
+2. Start the app and tap **Choose your disc image**. The app copies the disc into its own folder (1.4 GB),
+   checks that it is the USA revision 0, prepares the game from it and starts it. Your file stays where it was.
+3. Optionally, **Choose your European disc image** for the other languages (also later, from the options menu).
+
+With a PC and adb, `python scripts/android/install.py --launch` does the same in one step (`--pal GZLP01.iso`
+adds the European disc).
 
 ## Play
 

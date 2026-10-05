@@ -92,6 +92,8 @@ add_library(main SHARED
     src/language_overlay.c
     src/hd_pack.c
     src/hd_pack_7z.c
+    src/disc_setup.c
+    ${BLUEWAKE_REPO_ROOT}/apple/ios/src/disc_import.c
     ${BLUEWAKE_HOST_SOURCES})
 # The unchanged host keeps its own entry point under another name; the shim
 # owns SDL_main and hands over after setting the defaults.
@@ -104,6 +106,9 @@ if(TARGET imgui)
 endif()
 set_target_properties(main PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(main PRIVATE
+    # The iOS app's disc importer, with a SHA-1 in CommonCrypto's shape (src/compat).
+    ${BLUEWAKE_REPO_ROOT}/apple/ios/src
+    src/compat
     ${GXRUNTIME_DIR}/include
     ${BLUEWAKE_HOST_SRC}
     ${BLUEWAKE_REPO_ROOT}/ref/recompcore/Source/Core/Core/PowerPC/StaticRecomp)

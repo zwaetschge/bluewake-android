@@ -54,6 +54,7 @@ bool bw_hd_pack_installed(void);
 bool bw_hd_pack_start(void);
 int bw_hd_pack_state(unsigned long long* done, unsigned long long* total, char* message, size_t n);
 bool bw_hd_pack_take_finished(void);
+void bw_choose_european_disc(void);         // android/src/disc_setup.c
 #endif
 void aurora_set_frame_buffer_scale(float scale);
 void aurora_set_frame_interpolation(bool enabled);
@@ -441,6 +442,8 @@ void gameplay_tab() {
     ImGui::TextDisabled("Other languages need your European disc beside the USA one, as game/GZLP01.iso. "
                         "This session: %s.", bw_lang_overlay_status());
     ImGui::PopTextWrapPos();
+    if (ImGui::Button("Choose your European disc..."))
+        bw_choose_european_disc();
     ImGui::Separator();
 #endif
     if (ImGui::Checkbox("Better Wind Waker", &g_betterww))

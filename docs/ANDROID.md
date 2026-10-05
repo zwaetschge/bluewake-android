@@ -143,6 +143,17 @@ points) were called through the PLT even from within libmain.
 
 ## Install
 
+Install the APK on the device and start it. The first screen (`SetupActivity`, the app's entry) asks for the
+disc image: it copies the chosen `.iso`/`.gcm` through Android's file picker into `files/game/GZLE01.iso`,
+rejecting another game, the European disc, an `.rvz`, an NKit or a trimmed image with a sentence that says so,
+and prepares `main.dol` and the 415 RELs from it with the iOS app's importer (`apple/ios/src/disc_import.c`:
+the disc id and main.dol's revision-0 SHA-1 are checked; `android/src/disc_setup.c`, with a SHA-1 in
+CommonCrypto's shape in `android/src/compat`). With the files in place the entry hands straight over to the
+game. The European disc is chosen the same way, on that screen or later from **Options > Gameplay > Choose
+your European disc**. The chosen files are copied, never moved or deleted.
+
+From a PC with adb, the installer does it without the screen:
+
 ```bash
 python scripts/android/install.py
 ```
@@ -221,6 +232,7 @@ menu.
 | `android/src/language_overlay.c` | Other languages from the European disc, in front of GXRuntime's DVD layer (`--wrap`) |
 | `android/src/language_textures.h` | The file select's save-slot labels per language (`scripts/android/language_textures.py`) |
 | `android/src/hd_pack.c`, `hd_pack_7z.c`, `android/java/.../HdPack.java` | The options menu's HD pack download and the streaming 7z unpacker |
+| `android/java/.../SetupActivity.java`, `android/src/disc_setup.c` | The app's entry: choosing and preparing the disc on the device |
 | `android/src/profile_flush.c` | Compiled into training modules only |
 | `android/java/dev/bluewake/android/` | The activity (SDL's; the 60 or 120 Hz display-mode request) and the touch overlay |
 | `android/AndroidManifest.xml`, `android/res/` | The manifest and the icon (the iOS app's) |

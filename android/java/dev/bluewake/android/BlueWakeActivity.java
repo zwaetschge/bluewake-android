@@ -22,6 +22,14 @@ public class BlueWakeActivity extends SDLActivity implements InputManager.InputD
     private TouchControlsView touchControls;
     private InputManager inputManager;
 
+    /** The options menu's "Choose your European disc" (android/src/disc_setup.c). */
+    public static void chooseEuropeanDisc() {
+        final android.app.Activity activity = getContext();
+        if (activity == null) return;
+        activity.runOnUiThread(() -> activity.startActivity(
+                new Intent(activity, SetupActivity.class).putExtra(SetupActivity.EXTRA_EUROPE, true)));
+    }
+
     /** The options menu's "Download Hypatia's HD pack" (android/src/hd_pack.c). */
     public static void startHdPackDownload(String dest) {
         HdPack.start(getContext(), dest);

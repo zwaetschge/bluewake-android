@@ -32,6 +32,19 @@
 
         <profileable android:shell="true" />
 
+        <!-- The entry: hands over to the game, or first lets the player choose their disc. -->
+        <activity
+            android:name="dev.bluewake.android.SetupActivity"
+            android:exported="true"
+            android:label="@LABEL@"
+            android:theme="@android:style/Theme.Material.NoActionBar"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name="dev.bluewake.android.BlueWakeActivity"
             android:exported="true"
@@ -42,10 +55,6 @@
             android:resizeableActivity="true"
             android:preferMinimalPostProcessing="true"
             android:configChanges="layoutDirection|locale|grammaticalGender|fontScale|fontWeightAdjustment|orientation|uiMode|screenLayout|screenSize|smallestScreenSize|keyboard|keyboardHidden|navigation|density">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
     </application>
 </manifest>
