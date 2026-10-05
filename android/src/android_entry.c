@@ -12,6 +12,8 @@
 // The game's files, never in the APK (scripts/android/install.py pushes them):
 //   <external>/game/GZLE01.iso               the disc image the game reads
 //   <external>/game/main.dol, game/rels/     prepared from that disc
+//   <external>/game/GZLP01.iso               optional: the European disc, for
+//                                            German, French, Spanish, Italian
 // Player data, beside them in the app's external folder
 // (/sdcard/Android/data/<package>/files), reachable over adb:
 //   <external>/GZLE01.card                   the memory card (saves)
@@ -260,6 +262,9 @@ int main(int argc, char** argv) {
     bw_default_path("BLUEWAKE_DOL", g_game_dir, "main.dol");
     bw_default_path("BLUEWAKE_RELS_DIR", g_game_dir, "rels");
     bw_default_path("BLUEWAKE_DISC", g_game_dir, "GZLE01.iso");
+    // The European disc, read only for the options menu's other languages
+    // (language_overlay.c); the game runs from the USA one either way.
+    bw_default_path("BLUEWAKE_LANGUAGE_DISC", g_game_dir, "GZLP01.iso");
     bw_default_path("BLUEWAKE_DSP_IROM", g_game_dir, "dsp_rom.bin");
     bw_default_path("BLUEWAKE_DSP_COEF", g_game_dir, "dsp_coef.bin");
 

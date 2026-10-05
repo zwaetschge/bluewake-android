@@ -171,6 +171,24 @@ never does.
 - The picture keeps the game's shape and renders at twice the GameCube's 480 lines by default; the mouse camera
   is off (touches would reach it as clicks).
 
+### Other languages
+
+The game is translated from the USA disc, whose text is English only. With your European disc (GZLP01) beside
+it, the game plays in **German, French, Spanish or Italian**: push it with
+`python scripts/android/install.py --pal GZLP01.iso` (it lands as `files/game/GZLP01.iso`), then choose
+**Options > Gameplay > Language** and start the game again.
+
+Nothing is copied or rebuilt: when the USA disc opens, the app reads the chosen language's files from the
+European disc (about 2 MB) and serves them in place of the English ones (`android/src/language_overlay.c`). That
+is the messages, the title logo, place names, the action words on the buttons, the menus' word images, the GBA
+Tingle Tuner's text and the file select. The game code stays the USA translation. Two things stay English: the
+name entry keyboard's layout (the European one crashes the USA code) and "New Game" on an empty file (a string
+in the game's code). The menu shows what the session loaded; the session log says why when a language could not
+be used (`[lang]` lines), and the game then plays in English.
+
+`BLUEWAKE_LANGUAGE=de|fr|es|it` and `BLUEWAKE_LANGUAGE_DISC=PATH` (in `launch.env`) do the same without the
+menu.
+
 ## Files
 
 | | |
@@ -178,6 +196,8 @@ never does.
 | `android/CMakeLists.txt` | `libmain.so`: the host, GXRuntime, Aurora, SDL3 and Dawn (static), the donor DSP |
 | `android/src/android_entry.c` | The entry shim: paths, the session log, `launch.env`, the training profile's write |
 | `android/src/android_touch.c` | The touch overlay's native end: Aurora's virtual pad |
+| `android/src/language_overlay.c` | Other languages from the European disc, in front of GXRuntime's DVD layer (`--wrap`) |
+| `android/src/language_textures.h` | The file select's save-slot labels per language (`scripts/android/language_textures.py`) |
 | `android/src/profile_flush.c` | Compiled into training modules only |
 | `android/java/dev/bluewake/android/` | The activity (SDL's, a 60 Hz display request) and the touch overlay |
 | `android/AndroidManifest.xml`, `android/res/` | The manifest and the icon (the iOS app's) |

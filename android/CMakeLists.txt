@@ -89,6 +89,7 @@ set(BLUEWAKE_HOST_SOURCES
 add_library(main SHARED
     src/android_entry.c
     src/android_touch.c
+    src/language_overlay.c
     ${BLUEWAKE_HOST_SOURCES})
 # The unchanged host keeps its own entry point under another name; the shim
 # owns SDL_main and hands over after setting the defaults.
@@ -120,6 +121,10 @@ target_link_options(main PRIVATE "LINKER:-u,JNI_OnLoad"
 # the GX worker and 4 percent of the render thread on the Fold 7. Nothing
 # loaded before libmain defines them, so nothing could interpose them anyway.
 target_link_options(main PRIVATE "LINKER:-Bsymbolic-functions")
+# The in-app language overlay (src/language_overlay.c) stands in front of
+# GXRuntime's DVD layer: every caller of these three reaches the wrapper.
+target_link_options(main PRIVATE "LINKER:--wrap=dvd_open_image"
+    "LINKER:--wrap=dvd_entry_info" "LINKER:--wrap=dvd_read_to_guest")
 if(_bluewake_profile_flags)
     target_link_options(main PRIVATE ${_bluewake_profile_flags})
 endif()

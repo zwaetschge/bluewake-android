@@ -59,6 +59,9 @@ def main():
     parser.add_argument("--no-game", action="store_true", help="install the APK only")
     parser.add_argument("--env", action="append", default=[], metavar="NAME=VALUE",
                         help="launch settings written to files/launch.env (repeat; --env '' clears it)")
+    parser.add_argument("--pal", type=Path, metavar="GZLP01.iso",
+                        help="your European disc too, for German, French, Spanish and Italian "
+                             "(Options > Gameplay > Language)")
     parser.add_argument("--launch", action="store_true", help="start the game afterwards")
     parser.add_argument("--pull-saves", type=Path, metavar="DIR", help="copy the memory card and settings to DIR")
     parser.add_argument("--package", help="the application id (default: the one OUT was built with)")
@@ -152,6 +155,15 @@ def main():
             run("push", iso, f"{remote}/game/GZLE01.iso")
         else:
             print("  the disc image is already there")
+        if args.pal is not None:
+            with args.pal.open("rb") as disc:
+                if disc.read(6) != b"GZLP01":
+                    sys.exit(f"{args.pal} is not the European disc (GZLP01)")
+            if not same_file(args.pal, f"{remote}/game/GZLP01.iso"):
+                print(f"pushing the European disc ({args.pal.stat().st_size >> 20} MB)")
+                run("push", args.pal, f"{remote}/game/GZLP01.iso")
+            else:
+                print("  the European disc is already there")
         # The folders adb makes in the app's storage are shell's (group
         # ext_data_rw, 2770). On the Fold 7 (Android 16) a newly installed app
         # could not search them and stopped with "the prepared game executable

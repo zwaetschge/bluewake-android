@@ -39,10 +39,16 @@ extern "C" {
 #include <cstring>
 #include <map>
 #include <string>
+#if defined(BLUEWAKE_ANDROID) && BLUEWAKE_ANDROID
+#include <strings.h>
+#endif
 #include <sys/stat.h>
 #include <vector>
 
 extern "C" {
+#if defined(BLUEWAKE_ANDROID) && BLUEWAKE_ANDROID
+const char* bw_lang_overlay_status(void);   // android/src/language_overlay.c
+#endif
 void aurora_set_frame_buffer_scale(float scale);
 void aurora_set_frame_interpolation(bool enabled);
 void aurora_set_frame_interp_steps(int steps);
@@ -56,7 +62,7 @@ namespace {
 // the menu does not show) is kept as it was.
 const char* const kKeys[] = {
     "BLUEWAKE_ASPECT",          "DOL_AURORA_FULLSCREEN",    "DOL_AURORA_RENDER_SCALE",
-    "BLUEWAKE_REFRESH",
+    "BLUEWAKE_REFRESH",         "BLUEWAKE_LANGUAGE",
     "DOL_AURORA_FRAME_INTERP",  "DOL_AURORA_FRAME_INTERP_STEPS", "DOL_AURORA_SHOW_FPS", "DOL_AURORA_FORCE_ANISO",
     "DOL_AURORA_TEXTURE_PACK",  "BLUEWAKE_MODS",            "BLUEWAKE_OPTIONS",
     "BLUEWAKE_FADE_FRAMES",     "BLUEWAKE_FAST_FORWARD",    "BLUEWAKE_QUICK_DOORS",
@@ -357,6 +363,29 @@ void display_tab() {
 }
 
 void gameplay_tab() {
+#if defined(BLUEWAKE_ANDROID) && BLUEWAKE_ANDROID
+    // The game's language: the USA disc's English, or German, French, Spanish
+    // or Italian built from the European disc when the game starts
+    // (android/src/language_overlay.c).
+    static const char* const kLanguages[] = {"English", "Deutsch", "Fran\xC3\xA7" "ais", "Espa\xC3\xB1" "ol",
+                                             "Italiano"};
+    static const char* const kLanguageCodes[] = {"en", "de", "fr", "es", "it"};
+    int language = 0;
+    const std::string chosen = env("BLUEWAKE_LANGUAGE", "en");
+    for (int i = 0; i < 5; ++i)
+        if (strcasecmp(chosen.c_str(), kLanguageCodes[i]) == 0)
+            language = i;
+    if (combo("Language", &language, kLanguages, 5)) {
+        set_env("BLUEWAKE_LANGUAGE", kLanguageCodes[language]);
+        g_dirty = g_restart_pending = true;
+    }
+    restart_note();
+    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 30.0f);
+    ImGui::TextDisabled("Other languages need your European disc beside the USA one, as game/GZLP01.iso. "
+                        "This session: %s.", bw_lang_overlay_status());
+    ImGui::PopTextWrapPos();
+    ImGui::Separator();
+#endif
     if (ImGui::Checkbox("Better Wind Waker", &g_betterww))
         g_dirty = g_restart_pending = true;
     restart_note();
